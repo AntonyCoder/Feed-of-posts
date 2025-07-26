@@ -1,5 +1,6 @@
-import stream$ from "./api";
-import Messages from "./components/polling/polling";
-const root = document.querySelector('#root')
+import postsWithComments$ from "./api";
+import Feed from "./components/feed/feed";
 
-const messages = new Messages(root, stream$)
+const container = document.querySelector('#root');
+
+const feed = new Feed(container, postsWithComments$);

@@ -1,30 +1,30 @@
 import { ajax } from 'rxjs/ajax';
-import { of, catchError, interval, switchMap } from 'rxjs';
+import { of, catchError, map, mergeMap, toArray, from } from 'rxjs';
 
 const API_URL = 'http://localhost:3003';
 
-const stream$ = ajax.getJSON(`${API_URL}/posts/latest`).pipe(
-    map(posts => console.log(posts)),
+const postsWithComments$ = ajax.getJSON(`${API_URL}/posts/latest`).pipe(
+    map(response => response.data),
+    mergeMap(posts => from(posts)),
+    mergeMap(post =>
+        ajax.getJSON(`${API_URL}/posts/${post.id}/comments/latest`).pipe(
+            map(comments => ({
+                ...post,
+                comments,
+            })),
+            catchError(() => of({ ...post, comments: [] }))
+        )
+    ),
+    toArray(),
     catchError(error => {
-        console.error(error);
-        return of({ error: true, message: error.message });
+        console.error('Ошибка загрузки:', error);
+        return of([]);
     })
 )
 
-stream$.subscribe({
-    next: data => console.log(data),
-    error: err => console.error(err)
+export default postsWithComments$
+
+postsWithComments$.subscribe(posts => {
+    console.log(posts);
 })
 
-// const stream$ = interval(5000).pipe(
-//     switchMap(() =>
-//         ajax.getJSON(API_URL).pipe(
-//             catchError(err => {
-//                 console.error(err);
-//                 return of({ error: true, message: err.message });
-//             })
-//         )
-//     )
-// )
-
-// export default stream$;
