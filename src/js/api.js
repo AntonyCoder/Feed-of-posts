@@ -10,7 +10,7 @@ const postsWithComments$ = ajax.getJSON(`${API_URL}/posts/latest`).pipe(
         ajax.getJSON(`${API_URL}/posts/${post.id}/comments/latest`).pipe(
             map(comments => ({
                 ...post,
-                comments,
+                comments: comments.data || [],
             })),
             catchError(() => of({ ...post, comments: [] }))
         )
@@ -24,7 +24,4 @@ const postsWithComments$ = ajax.getJSON(`${API_URL}/posts/latest`).pipe(
 
 export default postsWithComments$
 
-postsWithComments$.subscribe(posts => {
-    console.log(posts);
-})
 

@@ -1,4 +1,5 @@
-import './feed.css'
+import './feed.css';
+import moment from 'moment';
 
 export default class Feed {
     constructor(container, stream$) {
@@ -14,6 +15,11 @@ export default class Feed {
     //Получение данных с постами и комментариями
     getData() {
         this.stream$.subscribe(data => {
+            if (data.length == 0) {
+                const message = document.createElement('p');
+                message.textContent = 'Посты отсутствуют';
+                this.container.appendChild(message);
+            }
             data.forEach(post => {
                 this.renderPost(post);
             })
@@ -40,7 +46,7 @@ export default class Feed {
 
         const postDate = document.createElement('p');
         postDate.classList.add('post-date');
-        postDate.textContent = new Date(post.created * 1000).toLocaleString();
+        postDate.textContent = this._formatDate(post.created);
 
         authorInfo.append(authorFullName, postDate);
 
@@ -49,7 +55,7 @@ export default class Feed {
         const postMainInformation = document.createElement('div');
         postMainInformation.classList.add('post-main-information');
 
-        const comments = this.renderComments(post.comments.data);
+        const comments = this.renderComments(post.comments);
 
         postBlock.append(postAuthor, postMainInformation, comments);
 
@@ -68,12 +74,23 @@ export default class Feed {
         const commentsWrapper = document.createElement('div');
         commentsWrapper.classList.add('comments-wrapper');
 
+        if (comments.length == 0) {
+            const message = document.createElement('p');
+            message.textContent = 'Комментарии отсутствуют';
+            commentsWrapper.appendChild(message)
+        }
+
         comments.forEach(comment => {
             const commentBlock = document.createElement('div');
             commentBlock.classList.add('comment-block');
 
             const commentAvatar = document.createElement('div');
             commentAvatar.classList.add('comment-avatar');
+
+            const commentAvatarImg = document.createElement('img');
+            commentAvatarImg.classList.add('comment-avatar-image');
+
+            commentAvatar.appendChild(commentAvatarImg);
 
             const commentMainInfo = document.createElement('div');
             commentMainInfo.classList.add('comment-main-info');
@@ -90,7 +107,7 @@ export default class Feed {
 
             const commentDate = document.createElement('div');
             commentDate.classList.add('comment-date');
-            commentDate.textContent = new Date(comment.created * 1000).toLocaleString();
+            commentDate.textContent = this._formatDate(comment.created);
 
             commentBlock.append(commentAvatar, commentMainInfo, commentDate);
 
@@ -105,6 +122,10 @@ export default class Feed {
         commentsBlock.append(commentsTitle, commentsWrapper, commentsBtn);
 
         return commentsBlock;
+    }
 
+    _formatDate(date) {
+        const convertedDate = moment.unix(date).format('hh:mm DD.MM.YYYY');
+        return convertedDate;
     }
 }
